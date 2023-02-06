@@ -116,6 +116,15 @@ OFFICE(dhcp-config)> dns-server 11.11.11.11
 OFFICE(dhcp-config)> exit
 ```
 
+## NAT
+
+```bash
+ip nat inside source static 172.18.40.250 30.30.30.14 
+ip classless
+ip route 0.0.0.0 0.0.0.0 GigabitEthernet0/1 
+ip flow-export version 9
+```
+
 ## OSPF
 
 ```bash
