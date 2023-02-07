@@ -19,7 +19,7 @@ configure terminal
 # Kilépés egy szinttel feljebb
 exit
 # Help menü
-ROUTER(dhcp-config)> ?
+?
 
 # Hosztnév beállítása
 ROUTER(config)> hostname Akarmi
@@ -115,18 +115,40 @@ ROUTER(dhcp-config)> dns-server 11.11.11.11
 ```bash
 ip nat inside source static 172.18.40.250 30.30.30.14 
 ip classless
-ip route 0.0.0.0 0.0.0.0 GigabitEthernet0/1 
+ip route 0.0.0.0 0.0.0.0 GigabitEthernet 0/1
 ip flow-export version 9
 ```
 
 ## OSPF
 
+A `SOUTH_NET` és `WEATHER&CLIMATE` hálózatok hirdetése OSPF-el.  
+A `NORD_LAN` nincs hirdetve! (Ha az is kellene, akkor hozzá kell adni a ` network 30.30.30.0 0.0.0.15 area 0` parancsot is az OSLO router-hez.)
+
+![OSPF net](images/ospf-network.jpg)
+
 ```bash
-router ospf 1911
- log-adjacency-changes
- passive-interface GigabitEthernet0/0
- network 40.40.40.0 0.0.0.3 area 0
- network 172.18.40.0 0.0.0.255 area 0
+# OSPF konfigurálása 1911-es folyamatazonosítóval
+OSLO(config)> router ospf 1911
+OSLO(config-router)> log-adjacency-changes
+# OSLO router-hez csatlakozó hálózatok (kivéve NORD_LAN)
+OSLO(config-router)> network 40.40.40.0 0.0.0.3 area 0
+OSLO(config-router)> network 172.18.40.0 0.0.0.255 area 0
+```
+
+```bash
+# OSPF konfigurálása 1911-es folyamatazonosítóval
+SOUTH(config)> router ospf 1911
+SOUTH(config-router)> log-adjacency-changes
+# SOUTH router-hez csatlakozó hálózatok
+SOUTH(config-router)> network 10.10.10.0 0.0.0.3 area 0
+SOUTH(config-router)> network 40.40.40.0 0.0.0.3 area 0
+```
+
+```bash
+# Routing információk lekérdezése ellenőrzéshez
+# (Az "O" jelzést kell keresni)
+OSLO> route
+SOUTH> route
 ```
 
 ## Hálózatik címek
