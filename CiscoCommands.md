@@ -9,111 +9,105 @@
 
 - Download: [Cisco Skills For All](https://skillsforall.com/resources/lab-downloads)
 
-## Kérdések
-
-- Program verziók:
-  - Cisco Packet Tracer
-  - Visual Studio
-  - .NET (dotnet core-ban lehet fejleszteni)
-  - SQL Server
-  - SSMS
-- Milyen segédezközt helet használni?
-- Egyéb program telepíthető?
-  - vs-code
-  - SSMS Boost
-  - git
-  - ...
-
-## Basic commands
+## Alap parancsok
 
 ```bash
+# Belépés privilegizált módba
 enable
+# Belépés konfigurációs módba
 configure terminal
-
-hostname Akarmi
-
+# Kilépés egy szinttel feljebb
 exit
+# Help menü
+ROUTER(dhcp-config)> ?
 
-show running-config
-copy running-config startup-config
+# Hosztnév beállítása
+ROUTER(config)> hostname Akarmi
 
-write memory
+# Futó konfiguráció megjelenítése a konzolon
+ROUTER> show running-config
+# Futó konfiguráció másolása az indítási konfigurációba
+ROUTER> copy running-config startup-config
+ROUTER> write memory
 
-reload
+# Eszköz újraindítása
+ROUTER> reload
 ```
 
-## User Management
-
-```
-enable password jelszo
-# or
-enable secret titkos-jelszo
-
-# Create user:
-username admin password admin
-username kutato password sark123
-
-# Select virtual lines 0-15:
-lin vty 0 15
-  # set passwd for telnet:
-  password admin
-  # enable login:
-  login
-
-  # enable login for local users (pl. kutato)
-  login local
-```
-
-## Save file from telnet
-
-```
-SZOLGALTATO#copy running-config tftp
-Address or name of remote host []? 10.0.20.1
-Destination filename [SZOLGALTATO-confg]? szolgaltato.conf
-
-Writing running-config...!!
-[OK - 1133 bytes]
-
-1133 bytes copied in 0.037 secs (30621 bytes/sec)
-```
-
-## IP Configuration
+## Felhasználókezelés
 
 ```bash
-enable
-configure terminal
-interface GigabitEthernet 0/0
-ip address 20.255.255.254 255.0.0.0
-shutdown
+# Jelszó beállítása privilegizált módhoz
+ROUTER(config)> enable password jelszo
+ROUTER(config)> enable secret titkos-jelszo
+
+# Felhasználó létrehozása
+ROUTER(config)> username admin password admin
+ROUTER(config)> username kutato password sark123
 ```
 
-## DHCP CLI configuration
+## Telnet
+
+```bash
+# Virtuális vonalak kiválasztása:
+ROUTER(config)> line vty 0 15
+
+# Belépés engedélyezése csak jelszóval
+ROUTER(config-line)> password jelszó
+ROUTER(config-line)> login
+
+# Belépés engedélyezése helyi felhasználónak (pl. kutato)
+ROUTER(config-line)> login local
+```
+
+```bash
+# Futó konfiguráció mentése fájlba egy másik szerverre
+ROUTER> copy running-config tftp
+  Address or name of remote host []? 10.0.20.1
+  Destination filename [SZOLGALTATO-confg]? szolgaltato.conf
+```
+
+## IP konfiguráció switch-en
+
+```bash
+# Virtuális hálózat kiválasztása
+SWITCH(config)> interface Vlan 1
+# IP cím és hálózati maszk megadása
+SWITCH(config-if)> ip address 172.18.40.253 255.255.255.0
+SWITCH(config-if)> exit
+# Alapértelmezett átjáró beállítása
+SWITCH(config)> ip default-gateway 172.18.40.254
+```
+
+## IP konfiguráció router-en
+
+```bash
+# Interface kiválasztása
+ROUTER(config)> interface GigabitEthernet 0/0
+# IP cím és hálózati maszk megadása
+ROUTER(config)> ip address 20.255.255.254 255.0.0.0
+ROUTER(config-if)> exit
+# Alapértelmezett átjáró beállítása
+ROUTER(config)> ip default-gateway 20.255.255.254
+```
+
+## DHCP konfiguráció
 
 [youtube](https://www.youtube.com/watch?v=q29_iMZaRDA)
 
 ```bash
-Press RETURN to get started.
+# Az első és utolsó öt IP cím kizárása a DHCP tartományból
+ROUTER(config)> ip dhcp excluded-address 20.0.0.1 20.0.0.5
+ROUTER(config)> ip dhcp excluded-address 20.255.255.250 20.255.255.254
 
-# Enter root mode
-OFFICE> enable
-# Start global config
-OFFICE> conf t
-  Enter configuration commands, one per line.  End with CNTL/Z.
-
-# DHCP first/last 5 IPs excluded
-OFFICE(config)> ip dhcp excluded-address 20.0.0.1 20.0.0.5
-OFFICE(config)> ip dhcp excluded-address 20.255.255.250 20.255.255.254
-
-# Create pool named 'OFFICE'
-OFFICE(config)>      ip dhcp pool OFFICE
-# Get help
-OFFICE(dhcp-config)> ?
-# Set network and subnet mask
-OFFICE(dhcp-config)> network 20.0.0.0 255.0.0.0
-# Default gateway
-OFFICE(dhcp-config)> default-router 20.255.255.254
-OFFICE(dhcp-config)> dns-server 11.11.11.11
-OFFICE(dhcp-config)> exit
+# DHCP pool létrehozása 'OFFICE' névan
+ROUTER(config)> ip dhcp pool OFFICE
+# Hálózati cím és hálózati maszk megadása
+ROUTER(dhcp-config)> network 20.0.0.0 255.0.0.0
+# Alapértelmezett átjáró megadása
+ROUTER(dhcp-config)> default-router 20.255.255.254
+# DNS szerver beállítása
+ROUTER(dhcp-config)> dns-server 11.11.11.11
 ```
 
 ## NAT
@@ -135,53 +129,39 @@ router ospf 1911
  network 172.18.40.0 0.0.0.255 area 0
 ```
 
-## Subnet Mask Explained
+## Hálózatik címek
 
 [youtube](https://www.youtube.com/watch?v=s_Ntt6eTn94)
 
-32 bit number => 4 x 8 octet
+> 192.168.30.32/27
 
-Subnet mask = 255.255.255.0
-IP address  = Network address + Host address
-              192.168.1.0     + 192.168.1.2
-
-Subnet mask defines what is net and what is host address
-
-in binary:
-
-```
-8 bit octet chart
-128 64 32 16 8 4 2 1
+```bash
+Network address:   `192.168.30.32`
+Net mask binary:   `11111111.11111111.11111111.11100000`
+                   `                              11111` => 31
+Net mask decimal:  `255.255.255.224`
+Broadcast address: `192.168.30.63`
+IP range:          `33-62`
 ```
 
-```
-255.255.255.0
-11111111.11111111.11111111.00000000
-192.168.1.0
-11000000.10101000.00000001.00000000
+> 192.168.50.8/29
+
+```bash
+Network address:   `192.168.50.8`
+Net mask binary:   `11111111.11111111.11111111.11111000`
+                   `                                111` => 7
+Net mask decimal:  `255.255.255.248`
+Broadcast address: `192.168.50.15`
+IP range:          `9-14`
 ```
 
-```
-255.255.255.128
-11111111.11111111.11111111.10000000
-192.168.1.0
-11000000.10101000.00000001.00000000
-```
+> 3.3.3.2/28
 
+```bash
+Network address:   `3.3.3.2`
+Net mask binary:   `11111111.11111111.11111111.11110000`
+                   `                               1111` => 15
+Net mask decimal:  `255.255.255.240`
+Broadcast address: `3.3.3.17`
+IP range:          `3-16`
 ```
-CIDR - Classless inter-domain routing (slash notation)
-192.168.1.0/24
-11111111.11111111.11111111.00000000
-==>
-Network address: 192.168.1.0
-Subnet mask:     255.255.255.0
-
-192.168.1.0/26
-11111111.11111111.11111111.11000000
-===>
-Network address: 192.168.1.0
-Subnet mask:     255.255.255.192
-```
-
-11111111.11111111.11111111.11000000
-255.255.255.192
