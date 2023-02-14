@@ -110,7 +110,21 @@ ROUTER(dhcp-config)> default-router 20.255.255.254
 ROUTER(dhcp-config)> dns-server 11.11.11.11
 ```
 
-## NAT
+## Static NAT
+
+![Static NAT](images/nat.jpg)
+
+```bash
+Router(config)# ip nat inside source static 172.20.40.22 65.54.23.3
+
+Router(config)# interface GigabitEthernet 0/0/0
+Router(config-if)# ip nat inside 
+Router(config-if)# exit
+
+Router(config)# interface GigabitEthernet 0/0/1
+Router(config-if)# ip nat outside 
+Router(config-if)# exit
+```
 
 ```bash
 ip nat inside source static 172.18.40.250 30.30.30.14 
@@ -122,7 +136,7 @@ ip flow-export version 9
 ## OSPF
 
 A `SOUTH_NET` és `WEATHER&CLIMATE` hálózatok hirdetése OSPF-el.  
-A `NORD_LAN` nincs hirdetve! (Ha az is kellene, akkor hozzá kell adni a ` network 30.30.30.0 0.0.0.15 area 0` parancsot is az OSLO router-hez.)
+A `NORD_LAN` nincs hirdetve! (Ha az is kellene, akkor hozzá kell adni a `network 30.30.30.0 0.0.0.15 area 0` parancsot is az OSLO router-hez.)
 
 ![OSPF net](images/ospf-network.jpg)
 
@@ -149,6 +163,20 @@ SOUTH(config-router)> network 40.40.40.0 0.0.0.3 area 0
 # (Az "O" jelzést kell keresni)
 OSLO> route
 SOUTH> route
+```
+
+## ACL (Accesc Control List)
+
+Hozzáférési lista megadása
+
+```bash
+# Első ACL lista:
+# 172.20.40.0 hálózat tiltása, kivéve 172.20.40.12
+Router(config)> access-list 1 permit 172.20.40.12
+Router(config)> access-list 1 deny 172.20.40.0 255.255.255.0
+
+# Második ACL lista:
+Router(config)> access-list 2 deny 192.168.1.0 255.255.255.0
 ```
 
 ## Hálózatik címek
