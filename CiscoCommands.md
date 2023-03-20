@@ -110,6 +110,46 @@ ROUTER(dhcp-config)> default-router 20.255.255.254
 ROUTER(dhcp-config)> dns-server 11.11.11.11
 ```
 
+## VLAN
+
+![VLAN](./images/vlan-notes.jpg)
+
+```
+Router:
+- interface on
+- create sub-interfaces
+	interface GigabitEthernet0/1.27
+	encapsulation dot1Q 27
+	ip address 192.168.45.1 255.255.255....
+	---
+	interface GigabitEthernet0/1.42
+	encapsulation dot1Q 42
+	ip address 192.168.45.129 255.255.255....
+- Crete DHCP pools:
+    ip dhcp pool CETUS
+	network 192.168.45.0 255.255.255....
+	default-router 192.168.45.1
+	dns ...
+	---
+    ip dhcp pool HYDRA
+	network 192.168.45.128 255.255.255....
+	default-router 192.168.45.129
+	dns ...
+
+Switch:
+- Create VLAN database
+	Switch(config)#vlan 23
+	Switch(config-vlan)#name PC
+- Create interface config
+	Switch(config-vlan)#int Fa0/8
+	Switch(config-if)#switchport mode access
+	Switch(config-if)#switchport access vlan 23
+- Create trunk:
+    S1 -> S2
+	S1 -> SW
+	S2 -> S1
+```
+
 ## Static NAT
 
 ![Static NAT](images/nat.jpg)
@@ -182,6 +222,24 @@ Router(config)> access-list 2 deny 192.168.1.0 255.255.255.0
 ## Hálózatik címek
 
 [youtube](https://www.youtube.com/watch?v=s_Ntt6eTn94)
+
+|  | /30 | /29 | /28 | /27 | /26 | /25 | /24 |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| Összes IP | 4 | 8 | 16 | 32 | 64 | 128 | 254 |
+| Kiosztható | 2 | 6 | 14 | 30 | 62 | 126 | 252 |
+| Maszk | 252 | 248 | 240 | 224 | 192 | 128 | 0 |
+
+> 192.168.10.128/25
+```bash
+Network address:   `192.168.30.32`
+NetMask(02):       `11111111.11111111.11111111.10000000`
+NetMask(10):       `255.255.255.128`
+Broadcast:
+  0111111 = 127
+  128 + 127 = 255
+  192.168.10.255
+IP Range:  129-254
+```
 
 > 192.168.30.32/27
 

@@ -1,0 +1,23 @@
+----- access telnet -------------
+access-list 5 permit 192.168.48.20
+
+---- ssh ----------------
+ip domain-name fornax.com
+crypto key generate rsa 
+2048
+..
+..
+ip ssh version 2
+username foradmin password forpass
+
+line vty 0 4
+access-class 5 in
+login local
+transport input ssh
+ip ssh version 2
+exit
+
+---- pat
+ip nat pool PAT 45.60.78.4 45.60.78.4 netmask 255.255.255.240
+access-list 1 permit any
+ip nat inside source list 1 pool PAT overload
