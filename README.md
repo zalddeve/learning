@@ -93,8 +93,9 @@ Az `ip route` parancs három paramétert vár:
 
 Route hozzáadása R2 router-hez:
 
-```cisco
+```bash
 ip route 192.168.30.32 255.255.255.224 192.168.10.66
+# ... ez ugyanaz mintha a grafikus felületen a 'Config' fülön a 'Static' menüben hoznánk létre az útvonalat.
 ```
 
 Most már `PC0` és `PC1` is megkapja az IP címet:

@@ -46,7 +46,7 @@ ROUTER(config)> username admin password admin
 ROUTER(config)> username kutato password sark123
 ```
 
-## Telnet
+## Távoli hozzáférés (Telnet és/vagy SSH)
 
 ```bash
 # Virtuális vonalak kiválasztása:
@@ -58,6 +58,13 @@ ROUTER(config-line)> login
 
 # Belépés engedélyezése helyi felhasználónak (pl. kutato)
 ROUTER(config-line)> login local
+
+# Távoli hozzáférési protokol megadás:
+ROUTER(config-line)> transport input ?
+  all     All protocols
+  none    No protocols
+  ssh     TCP/IP SSH protocol
+  telnet  TCP/IP Telnet protocol
 ```
 
 ```bash
@@ -65,6 +72,45 @@ ROUTER(config-line)> login local
 ROUTER> copy running-config tftp
   Address or name of remote host []? 10.0.20.1
   Destination filename [SZOLGALTATO-confg]? szolgaltato.conf
+```
+
+## Távoli hozzáférés (Összetett példa)
+
+"Az R_FORNAX forgalomirányító első 5 virtuális vonalán állítsa be, hogy távolról csak SSH
+protokollal lehessen elérni az eszközt! Használjon helyi hitelesítést a vonalakon!
+A szükséges felhasználó neve foradmin, jelszava forpass legyen! Állítsa be, hogy az eszköz
+domain neve fornax.com legyen! Engedélyezze az SSH 2-es verzióját! Használjon hozzá
+2048 bites kulcsot!"
+
+```bash
+# Hostnév és domain név beállítása
+R_FORNAX(config)> hostname R_FORNAX
+R_FORNAX(config)> ip domain-name fornax.com
+
+# 2048 bites RSA kulcs generálása
+R_FORNAX(config)> crypto key generate rsa
+  How many bits in the modulus [512]: 2048
+
+# SSH version 2 engedélyezése
+R_FORNAX(config)> ip ssh version 2
+
+# Felhasználó létrehozása
+R_FORNAX(config)> username foradmin password forpass
+
+# Első 5 virtuális vonal kiválasztása
+R_FORNAX(config)> line vty 0 4
+
+# Helyi hitelesítés használata (aka. belépés local felhasználóval)
+R_FORNAX(config-line)> login local
+
+# Csak SSH protokol engedélyezése
+R_FORNAX(config-line)> transport input ssh
+```
+
+## Domain név megadása
+
+```bash
+ROUTER(config)> ip domain-name fornax.com
 ```
 
 ## IP konfiguráció switch-en
@@ -100,55 +146,74 @@ ROUTER(config)> ip default-gateway 20.255.255.254
 ROUTER(config)> ip dhcp excluded-address 20.0.0.1 20.0.0.5
 ROUTER(config)> ip dhcp excluded-address 20.255.255.250 20.255.255.254
 
-# DHCP pool létrehozása 'OFFICE' névan
+# DHCP pool létrehozása 'OFFICE' néven
 ROUTER(config)> ip dhcp pool OFFICE
 # Hálózati cím és hálózati maszk megadása
-ROUTER(dhcp-config)> network 20.0.0.0 255.0.0.0
+ROUTER(dhcp-config)> network 20.0.0.0 255.255.255.0
 # Alapértelmezett átjáró megadása
 ROUTER(dhcp-config)> default-router 20.255.255.254
 # DNS szerver beállítása
 ROUTER(dhcp-config)> dns-server 11.11.11.11
 ```
 
-## VLAN
+Létrehozott DHCP pool(ok) kiíratása:
+
+```bash
+ROUTER> show ip dhcp pool 
+
+Pool OFFICE :
+ 1 subnet is currently in the pool
+ Current index        IP address range                    Leased/Excluded/Total
+ 20.0.0.1             20.0.0.1         - 20.0.0.254        0    / 0     / 254
+```
+
+## VLAN konfiguráció
 
 ![VLAN](./images/vlan-notes.jpg)
 
-```
-Router:
-- interface on
-- create sub-interfaces
-	interface GigabitEthernet0/1.27
-	encapsulation dot1Q 27
-	ip address 192.168.45.1 255.255.255....
-	---
-	interface GigabitEthernet0/1.42
-	encapsulation dot1Q 42
-	ip address 192.168.45.129 255.255.255....
-- Crete DHCP pools:
-    ip dhcp pool CETUS
-	network 192.168.45.0 255.255.255....
-	default-router 192.168.45.1
-	dns ...
-	---
-    ip dhcp pool HYDRA
-	network 192.168.45.128 255.255.255....
-	default-router 192.168.45.129
-	dns ...
+**Router** beállítása:
 
-Switch:
-- Create VLAN database
-	Switch(config)#vlan 23
-	Switch(config-vlan)#name PC
-- Create interface config
-	Switch(config-vlan)#int Fa0/8
-	Switch(config-if)#switchport mode access
-	Switch(config-if)#switchport access vlan 23
-- Create trunk:
-    S1 -> S2
-	S1 -> SW
-	S2 -> S1
-```
+- GigabitEthernet0/0/0: `on`
+
+- Alinterfészek létrehozása a `192.168.10.0/25` és `192.168.10.128/25` hálózatokhoz.  
+  (Az alinterfészek hálózati címe a tartomány első kiosztható IP címe lesz.)
+
+  - ```bash
+    Router(config)> interface GigabitEthernet0/0/0.10
+    Router(config-subif)> encapsulation dot1Q 10
+    Router(config-subif)> ip address 192.168.10.1 255.255.255.128
+    ```
+
+  - ```bash
+    Router(config)> interface GigabitEthernet0/0/0.20
+    Router(config-subif)> encapsulation dot1Q 20
+    Router(config-subif)> ip address 192.168.10.129 255.255.255.128
+    ```
+
+- DHCP pool-ok (`P10` és `P20`) létrehozása a fenti hálózatokhoz:
+
+  - ```bash
+    Router(config)> ip dhcp pool P10
+    Router(dhcp-config)> network 192.168.10.0 255.255.255.128
+    Router(dhcp-config)> default-router 192.168.10.1
+    Router(dhcp-config)> dns 8.8.8.8
+    ```
+
+  - ```bash
+    Router(config)> ip dhcp pool P20
+    Router(dhcp-config)> network 192.168.10.128 255.255.255.128
+    Router(dhcp-config)> default-router 192.168.10.129
+    Router(dhcp-config)> dns 8.8.8.8
+    ```
+
+**Switch1** és **Switch2** beállítása:
+
+- `VLAN Database` megadása mindkét kapcsolón:  
+  ![vlan-database](images/vlan-database.jpg)
+- `Trunk` mód beállítása a kapcsoló és router irányába:  
+  ![vlan-trunk](images/vlan-trunk.jpg)
+- `Access` mód beállítása és VLAN kiválasztása a PC-k irányába:  
+  ![vlan-access](images/vlan-access.jpg)
 
 ## Static NAT
 
@@ -231,7 +296,7 @@ Router(config)> access-list 2 deny 192.168.1.0 255.255.255.0
 
 > 192.168.10.128/25
 ```bash
-Network address:   `192.168.30.32`
+Network address:   `192.168.10.128`
 NetMask(02):       `11111111.11111111.11111111.10000000`
 NetMask(10):       `255.255.255.128`
 Broadcast:
