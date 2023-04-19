@@ -76,11 +76,8 @@ ROUTER> copy running-config tftp
 
 ## Távoli hozzáférés (Összetett példa)
 
-"Az R_FORNAX forgalomirányító első 5 virtuális vonalán állítsa be, hogy távolról csak SSH
-protokollal lehessen elérni az eszközt! Használjon helyi hitelesítést a vonalakon!
-A szükséges felhasználó neve foradmin, jelszava forpass legyen! Állítsa be, hogy az eszköz
-domain neve fornax.com legyen! Engedélyezze az SSH 2-es verzióját! Használjon hozzá
-2048 bites kulcsot!"
+"Az R_FORNAX forgalomirányító első 5 virtuális vonalán állítsa be, hogy távolról csak SSH protokollal lehessen elérni az eszközt! Használjon helyi hitelesítést a vonalakon!  
+A szükséges felhasználó neve foradmin, jelszava forpass legyen! Állítsa be, hogy az eszköz domain neve fornax.com legyen! Engedélyezze az SSH 2-es verzióját! Használjon hozzá 2048 bites kulcsot!"
 
 ```bash
 # Hostnév és domain név beállítása
