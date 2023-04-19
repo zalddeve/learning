@@ -70,7 +70,6 @@ namespace Godrok
             }
 
             double erintetlenTerulet = erintetlen / melysegAdatok.Count * 100;
-            erintetlenTerulet = Math.Round(erintetlenTerulet, 2);
 
             Console.WriteLine($"Az érintetlen terület aránya {erintetlenTerulet}%.");
             Console.WriteLine();
@@ -88,7 +87,7 @@ namespace Godrok
                 {
                     godorLeirasa = godorLeirasa + melysegAdat + " ";
                 }
-                else if (godorLeirasa != "")
+                else
                 {
                     fileIro.WriteLine(godorLeirasa);
                     godrokSzama += 1;
